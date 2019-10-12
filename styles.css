@@ -53,6 +53,14 @@ input {
         'start_time stop_time';
 }
 
+.time_progress {
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 5px;
+    margin: 2px;
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
 .week {
     display: grid;
     grid-template-columns: auto auto auto auto auto auto auto;

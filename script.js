@@ -20,6 +20,25 @@ function task() {
     return task;
 }
 
+function time_progress(time_required) {
+    let time_progress = document.createElement("div");
+    time_progress.className = "time_progress";
+
+    let time_done = document.createElement("input");
+    time_done.className = "time_done";
+    time_done.type = "time";
+    time_done.readOnly = true;
+    time_progress.appendChild(time_done);
+
+    let time_not_done = document.createElement("input");
+    time_not_done.className = "time_not_done";
+    time_not_done.type = "time";
+    time_not_done.readOnly = true;
+    time_progress.appendChild(time_not_done);
+
+    return time_progress;
+}
+
 function day(dayName) {
     let day = document.createElement("div");
     day.innerText = dayName;
@@ -29,6 +48,8 @@ function day(dayName) {
     tasks.className = "tasks";
     day.appendChild(tasks);
 
+    day.appendChild(time_progress());
+
     let add_task_button = document.createElement("button");
     add_task_button.className = "add_task_button";
     add_task_button.innerText = "add task";
@@ -36,6 +57,11 @@ function day(dayName) {
         tasks.appendChild(task());
     };
     day.appendChild(add_task_button);
+
+    function updateDay() {
+
+    }
+
 
     return day;
 }
