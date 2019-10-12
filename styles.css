@@ -19,7 +19,7 @@ button {
 button:hover {
     background-color: rgba(255, 255, 255, 0.55);
 }
-.
+
 button:active {
     background-color: rgba(255, 255, 255, 0.3);
 }
@@ -54,7 +54,7 @@ input {
 }
 
 .time_progress {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: rgba(0, 0, 0, 0.3);
     padding: 5px;
     margin: 2px;
     display: grid;
