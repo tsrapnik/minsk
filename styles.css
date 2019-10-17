@@ -53,12 +53,16 @@ input {
         'start_time stop_time';
 }
 
-.time_progress {
+.day {
+    text-align: center;
+}
+
+.day .required_minutes {
     background-color: rgba(0, 0, 0, 0.3);
     padding: 5px;
-    margin: 2px;
+    margin: auto;
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: auto;
 }
 
 .week {
