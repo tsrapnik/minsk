@@ -25,25 +25,31 @@ function minutes_to_string(minutes) {
     return hours.pad(2) + ":" + minutes.pad(2);
 }
 
-function task(update_parent) {
+function task(update_parent, initial_values = {}) {
     let task = document.createElement("div");
     task.className = "task";
 
     let comment = document.createElement("input");
     comment.className = "comment";
     comment.type = "text";
+    if("comment" in initial_values)
+        comment.value = initial_values.comment;
     task.appendChild(comment);
 
     let start_time = document.createElement("input");
     start_time.className = "start_time";
     start_time.type = "time";
     start_time.onchange = update_parent;
+    if("start_time" in initial_values)
+        start_time.value = initial_values.start_time;
     task.appendChild(start_time);
 
     let stop_time = document.createElement("input");
     stop_time.className = "stop_time";
     stop_time.type = "time";
     stop_time.onchange = update_parent;
+    if("stop_time" in initial_values)
+        stop_time.value = initial_values.stop_time;
     task.appendChild(stop_time);
 
     task.get_minutes = function () {
@@ -54,10 +60,18 @@ function task(update_parent) {
             return NaN;
     }
 
+    task.get_values = function () {
+        return {
+            comment: comment.value,
+            start_time: start_time.value,
+            stop_time: stop_time.value
+        }
+    };
+
     return task;
 }
 
-function day(dayName, update_parent) {
+function day(dayName, update_parent, initial_values = {}) {
     let day = document.createElement("div");
     day.innerText = dayName;
     day.className = "day";
@@ -89,6 +103,11 @@ function day(dayName, update_parent) {
     add_task_button.onclick = function () {
         tasks.appendChild(task(update));
     };
+    if("tasks" in initial_values) {
+        for(let values of initial_values.tasks) {
+            tasks.appendChild(task(update, values));
+        }
+    }
     day.appendChild(add_task_button);
 
     function update() {
@@ -100,20 +119,33 @@ function day(dayName, update_parent) {
         update_parent();
     }
 
+    day.get_values = function () {
+        let values = {tasks: []};
+        for(let task of tasks.getElementsByClassName("task")) {
+            values.tasks.push(task.get_values());
+        }
+        return values;
+    }
+
     return day;
 }
 
-function week() {
+function week(initial_values = {}) {
     let week = document.createElement("div");
     week.className = "week";
 
     let dayNames = ["monday", "tuesday", "wednesday", "thursday", "friday"];
-
-    for (let dayName of dayNames) {
-        week.appendChild(day(dayName, update));
+    
+    if("days" in initial_values) {
+        for (let index = 0; index < dayNames.length; index++) {
+            week.appendChild(day(dayNames[index], update, initial_values.days[index]));
+        }
     }
-
-    return week;
+    else {
+        for (let dayName of dayNames) {
+            week.appendChild(day(dayName, update));
+        }
+    }
 
     function  update() {
         let required_minutes = 0; //gets accumulated for the whole week. if negative you worked more than needed.
@@ -124,7 +156,37 @@ function week() {
             day.set_required_minutes(required_minutes);
         }
     }
+
+    week.get_values = function () {
+        let values = {days: []};
+        for(let day of week.children) {
+            values.days.push(day.get_values());
+        }
+        return values;
+    }
+
+    return week;
+}
+
+//TODO: Remove.
+let initial_values = {
+    days: [
+        {
+            tasks: [
+                {
+                    comment: "hello",
+                    start_time: "08:10",
+                    stop_time: "10:00"
+                }
+            ]
+        }
+    ]
 }
 
 let root = document.getElementById("root");
-root.appendChild(week());
+root.appendChild(week(initial_values));
+
+//TODO: Remove and remove associated button.
+function TODO() {
+    console.log(root.getElementsByClassName("week")[0].get_values());
+}
