@@ -25,31 +25,31 @@ function minutes_to_string(minutes) {
     return hours.pad(2) + ":" + minutes.pad(2);
 }
 
-function task(update_parent, initial_values = {}) {
+function task(update_parent, initial_state = {}) {
     let task = document.createElement("div");
     task.className = "task";
 
     let comment = document.createElement("input");
     comment.className = "comment";
     comment.type = "text";
-    if("comment" in initial_values)
-        comment.value = initial_values.comment;
+    if("comment" in initial_state)
+        comment.value = initial_state.comment;
     task.appendChild(comment);
 
     let start_time = document.createElement("input");
     start_time.className = "start_time";
     start_time.type = "time";
     start_time.onchange = update_parent;
-    if("start_time" in initial_values)
-        start_time.value = initial_values.start_time;
+    if("start_time" in initial_state)
+        start_time.value = initial_state.start_time;
     task.appendChild(start_time);
 
     let stop_time = document.createElement("input");
     stop_time.className = "stop_time";
     stop_time.type = "time";
     stop_time.onchange = update_parent;
-    if("stop_time" in initial_values)
-        stop_time.value = initial_values.stop_time;
+    if("stop_time" in initial_state)
+        stop_time.value = initial_state.stop_time;
     task.appendChild(stop_time);
 
     task.get_minutes = function () {
@@ -60,7 +60,7 @@ function task(update_parent, initial_values = {}) {
             return NaN;
     }
 
-    task.get_values = function () {
+    task.get_state = function () {
         return {
             comment: comment.value,
             start_time: start_time.value,
@@ -71,7 +71,7 @@ function task(update_parent, initial_values = {}) {
     return task;
 }
 
-function day(dayName, update_parent, initial_values = {}) {
+function day(dayName, update_parent, initial_state = {}) {
     let day = document.createElement("div");
     day.innerText = dayName;
     day.className = "day";
@@ -103,9 +103,9 @@ function day(dayName, update_parent, initial_values = {}) {
     add_task_button.onclick = function () {
         tasks.appendChild(task(update));
     };
-    if("tasks" in initial_values) {
-        for(let values of initial_values.tasks) {
-            tasks.appendChild(task(update, values));
+    if("tasks" in initial_state) {
+        for(let state of initial_state.tasks) {
+            tasks.appendChild(task(update, state));
         }
     }
     day.appendChild(add_task_button);
@@ -119,27 +119,28 @@ function day(dayName, update_parent, initial_values = {}) {
         update_parent();
     }
 
-    day.get_values = function () {
-        let values = {tasks: []};
+    day.get_state = function () {
+        let state = {tasks: []};
         for(let task of tasks.getElementsByClassName("task")) {
-            values.tasks.push(task.get_values());
+            state.tasks.push(task.get_state());
         }
-        return values;
+        return state;
     }
 
     return day;
 }
 
-function week(initial_values = {}) {
+function week(initial_state = {}) {
     let week = document.createElement("div");
     week.className = "week";
 
     let dayNames = ["monday", "tuesday", "wednesday", "thursday", "friday"];
     
-    if("days" in initial_values) {
+    if("days" in initial_state) {
         for (let index = 0; index < dayNames.length; index++) {
-            week.appendChild(day(dayNames[index], update, initial_values.days[index]));
+            week.appendChild(day(dayNames[index], update, initial_state.days[index]));
         }
+        update();
     }
     else {
         for (let dayName of dayNames) {
@@ -155,38 +156,26 @@ function week(initial_values = {}) {
             required_minutes += daily_required_minutes - day.get_minutes(); 
             day.set_required_minutes(required_minutes);
         }
-    }
 
-    week.get_values = function () {
-        let values = {days: []};
+        localStorage.setItem("state", JSON.stringify(get_state()));
+    }
+    
+    week.get_state = get_state;
+
+    function get_state() {
+        let state = {days: []};
         for(let day of week.children) {
-            values.days.push(day.get_values());
+            state.days.push(day.get_state());
         }
-        return values;
+        return state;
     }
 
     return week;
 }
 
-//TODO: Remove.
-let initial_values = {
-    days: [
-        {
-            tasks: [
-                {
-                    comment: "hello",
-                    start_time: "08:10",
-                    stop_time: "10:00"
-                }
-            ]
-        }
-    ]
-}
+initial_state = JSON.parse(localStorage.getItem("state"));
+if(initial_state == null)
+    initial_state = {};
 
 let root = document.getElementById("root");
-root.appendChild(week(initial_values));
-
-//TODO: Remove and remove associated button.
-function TODO() {
-    console.log(root.getElementsByClassName("week")[0].get_values());
-}
+root.appendChild(week(initial_state));
