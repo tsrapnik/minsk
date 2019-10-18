@@ -107,6 +107,7 @@ function day(dayName, update_parent, initial_state = {}) {
         for(let state of initial_state.tasks) {
             tasks.appendChild(task(update, state));
         }
+        update();
     }
     day.appendChild(add_task_button);
 
