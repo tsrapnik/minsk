@@ -29,12 +29,29 @@ function task(update_parent, initial_state = {}) {
     let task = document.createElement("div");
     task.className = "task";
 
+    let top_row = document.createElement("div");
+    top_row.className = "top_row";
+    task.appendChild(top_row);
+
     let comment = document.createElement("input");
     comment.className = "comment";
     comment.type = "text";
     if("comment" in initial_state)
         comment.value = initial_state.comment;
-    task.appendChild(comment);
+    top_row.appendChild(comment);
+    
+    let close_button = document.createElement("button");
+    close_button.className = "close_button";
+    close_button.innerText = "⨯";
+    close_button.onclick = function () {
+        task.parentElement.removeChild(task);
+        update_parent();
+    };
+    top_row.appendChild(close_button);
+
+    let bottom_row = document.createElement("div");
+    bottom_row.className = "bottom_row";
+    task.appendChild(bottom_row);
 
     let start_time = document.createElement("input");
     start_time.className = "start_time";
@@ -42,7 +59,7 @@ function task(update_parent, initial_state = {}) {
     start_time.onchange = update_parent;
     if("start_time" in initial_state)
         start_time.value = initial_state.start_time;
-    task.appendChild(start_time);
+    bottom_row.appendChild(start_time);
 
     let stop_time = document.createElement("input");
     stop_time.className = "stop_time";
@@ -50,7 +67,7 @@ function task(update_parent, initial_state = {}) {
     stop_time.onchange = update_parent;
     if("stop_time" in initial_state)
         stop_time.value = initial_state.stop_time;
-    task.appendChild(stop_time);
+    bottom_row.appendChild(stop_time);
 
     task.get_minutes = function () {
         let minutes = string_to_minutes(stop_time.value) - string_to_minutes(start_time.value);

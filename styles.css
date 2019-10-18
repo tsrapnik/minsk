@@ -31,16 +31,26 @@ input {
     margin: 2px;
 }
 
-.task .start_time {
-    grid-area: start_time;
+input:hover {
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
-.task .stop_time {
-    grid-area: stop_time;
+.task .close_button {
+    background-color: rgba(0, 0, 0, 0);
 }
 
-.task .comment {
-    grid-area: comment;
+.task .close_button:hover {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.task .top_row {
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
+.task .bottom_row {
+    display: grid;
+    grid-template-columns: auto auto;
 }
 
 .task {
@@ -48,9 +58,7 @@ input {
     padding: 2px;
     margin: 4px;
     display: grid;
-    grid-template-areas:
-        'comment comment'
-        'start_time stop_time';
+    grid-template-rows: auto auto;
 }
 
 .day {
