@@ -85,6 +85,8 @@ function task(update_parent, initial_state = {}) {
         }
     };
 
+    task.get_stop_time = () => stop_time.value;
+
     return task;
 }
 
@@ -105,7 +107,7 @@ function day(dayName, update_parent, initial_state = {}) {
     day.set_required_minutes = function (minutes) {
         required_minutes.innerText = minutes_to_string(minutes);
         if(minutes < 0) {
-            required_minutes.style.color = "rgba(120, 255, 120, 0.6)";
+            required_minutes.style.color = "rgba(120, 255, 120, 0.4)";
         }
         else {
             required_minutes.style.color = "rgba(255, 120, 120, 0.6)";
@@ -116,7 +118,10 @@ function day(dayName, update_parent, initial_state = {}) {
     add_task_button.className = "add_task_button";
     add_task_button.innerText = "add task";
     add_task_button.onclick = function () {
-        tasks.appendChild(task(update));
+        let initial_state = {};
+        if(tasks.lastChild != null)
+            initial_state.start_time = tasks.lastChild.get_stop_time();
+        tasks.appendChild(task(update, initial_state));
     };
     if("tasks" in initial_state) {
         for(let state of initial_state.tasks) {
