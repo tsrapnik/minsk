@@ -34,7 +34,7 @@ function minutes_to_string(minutes) {
     return hours.pad(2) + ":" + minutes.pad(2);
 }
 
-function task(update_parent, initial_state = {}) {
+function task(update_worked_minutes, initial_state = {}) {
     let task = document.createElement("div");
     task.className = "task";
 
@@ -45,7 +45,7 @@ function task(update_parent, initial_state = {}) {
     let comment = document.createElement("input");
     comment.className = "comment";
     comment.type = "text";
-    comment.onchange = update_parent;
+    comment.onchange = update_worked_minutes;
     if("comment" in initial_state)
         comment.value = initial_state.comment;
     top_row.appendChild(comment);
@@ -55,7 +55,7 @@ function task(update_parent, initial_state = {}) {
     close_button.innerText = "⨯";
     close_button.onclick = function () {
         task.parentElement.removeChild(task);
-        update_parent();
+        update_worked_minutes();
     };
     top_row.appendChild(close_button);
 
@@ -66,7 +66,7 @@ function task(update_parent, initial_state = {}) {
     let start_time = document.createElement("input");
     start_time.className = "start_time";
     start_time.type = "time";
-    start_time.onchange = update_parent;
+    start_time.onchange = update_worked_minutes;
     if("start_time" in initial_state)
         start_time.value = initial_state.start_time;
     bottom_row.appendChild(start_time);
@@ -74,7 +74,7 @@ function task(update_parent, initial_state = {}) {
     let stop_time = document.createElement("input");
     stop_time.className = "stop_time";
     stop_time.type = "time";
-    stop_time.onchange = update_parent;
+    stop_time.onchange = update_worked_minutes;
     if("stop_time" in initial_state)
         stop_time.value = initial_state.stop_time;
     bottom_row.appendChild(stop_time);
@@ -100,7 +100,7 @@ function task(update_parent, initial_state = {}) {
     return task;
 }
 
-function day(dayName, update_parent, initial_state = {}) {
+function day(dayName, update_required_minutes, initial_state = {}) {
     let day = document.createElement("div");
     day.innerText = dayName;
     day.className = "day";
@@ -131,24 +131,24 @@ function day(dayName, update_parent, initial_state = {}) {
         let initial_state = {};
         if(tasks.lastChild != null)
             initial_state.start_time = tasks.lastChild.get_stop_time();
-        tasks.appendChild(task(update, initial_state));
-        update();
+        tasks.appendChild(task(update_worked_minutes, initial_state));
+        update_worked_minutes();
     };
     if("tasks" in initial_state) {
         for(let state of initial_state.tasks) {
-            tasks.appendChild(task(update, state));
+            tasks.appendChild(task(update_worked_minutes, state));
         }
-        update();
+        update_worked_minutes();
     }
     day.appendChild(add_task_button);
 
-    function update() {
+    function update_worked_minutes() {
         minutes = 0;
         for (let task of tasks.getElementsByClassName("task")) {
             minutes += task.get_minutes();
         }
 
-        update_parent();
+        update_required_minutes();
     }
 
     day.get_state = function () {
@@ -170,17 +170,17 @@ function week(initial_state = {}) {
     
     if("days" in initial_state) {
         for (let index = 0; index < dayNames.length; index++) {
-            week.appendChild(day(dayNames[index], update, initial_state.days[index]));
+            week.appendChild(day(dayNames[index], update_required_minutes, initial_state.days[index]));
         }
     }
     else {
         for (let dayName of dayNames) {
-            week.appendChild(day(dayName, update));
+            week.appendChild(day(dayName, update_required_minutes));
         }
     }
-    update();
+    update_required_minutes();
 
-    function  update() {
+    function  update_required_minutes() {
         let required_minutes = 0; //gets accumulated for the whole week. if negative you worked more than needed.
         const daily_required_minutes = 8 * 60;
 
