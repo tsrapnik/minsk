@@ -16,10 +16,10 @@ function string_to_minutes(time_string) {
 //returns string in "hh:mm" format of the absolute value of the input.
 function minutes_to_string(minutes) {
     minutes = Math.abs(minutes);
-    const max_minutes = 23 * 60 + 59;
+    const max_minutes = 99 * 60 + 59;
     if(!(minutes <= max_minutes))
-        //only return values from 00:00 to 23:59, all other cases (also nan) return an empty string.
-        return "";
+        //only return values from 00:00 to 99:59, all other cases (also nan) return a default string.
+        return "--:--";
     let hours = Math.floor(minutes / 60);
     minutes %= 60;
     return hours.pad(2) + ":" + minutes.pad(2);
@@ -99,18 +99,16 @@ function day(dayName, update_parent, initial_state = {}) {
     tasks.className = "tasks";
     day.appendChild(tasks);
 
-    let required_minutes = document.createElement("input");
+    let required_minutes = document.createElement("time");
     required_minutes.className = "required_minutes";
-    required_minutes.type = "time";
-    required_minutes.readOnly = true;
     day.appendChild(required_minutes);
     day.set_required_minutes = function (minutes) {
-        required_minutes.value = minutes_to_string(minutes);
-        if(minutes > 0) {
-            required_minutes.style.color = "rgba(255, 100, 100, 1.0)";
+        required_minutes.innerText = minutes_to_string(minutes);
+        if(minutes < 0) {
+            required_minutes.style.color = "rgba(120, 255, 120, 0.6)";
         }
-        else if(minutes <= 0) {
-            required_minutes.style.color = "rgba(255, 255, 255, 0.55)";
+        else {
+            required_minutes.style.color = "rgba(255, 120, 120, 0.6)";
         }
     }
 
@@ -158,13 +156,13 @@ function week(initial_state = {}) {
         for (let index = 0; index < dayNames.length; index++) {
             week.appendChild(day(dayNames[index], update, initial_state.days[index]));
         }
-        update();
     }
     else {
         for (let dayName of dayNames) {
             week.appendChild(day(dayName, update));
         }
     }
+    update();
 
     function  update() {
         let required_minutes = 0; //gets accumulated for the whole week. if negative you worked more than needed.
@@ -191,7 +189,7 @@ function week(initial_state = {}) {
     return week;
 }
 
-initial_state = JSON.parse(localStorage.getItem("state"));
+let initial_state = JSON.parse(localStorage.getItem("state"));
 if(initial_state == null)
     initial_state = {};
 
