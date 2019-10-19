@@ -4,7 +4,7 @@ Number.prototype.pad = function(size) {
     return s;
 }
 
-// stolen from https://stackoverflow.com/questions/6117814/get-week-of-year-in-javascript-like-in-php.
+//stolen from https://stackoverflow.com/questions/6117814/get-week-of-year-in-javascript-like-in-php.
 Date.prototype.getWeekNumber = function(){
     let d = new Date(Date.UTC(this.getFullYear(), this.getMonth(), this.getDate()));
     let dayNum = d.getUTCDay() || 7;
@@ -45,6 +45,7 @@ function task(update_parent, initial_state = {}) {
     let comment = document.createElement("input");
     comment.className = "comment";
     comment.type = "text";
+    comment.onchange = update_parent;
     if("comment" in initial_state)
         comment.value = initial_state.comment;
     top_row.appendChild(comment);
