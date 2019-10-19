@@ -34,7 +34,7 @@ function minutes_to_string(minutes) {
     return hours.pad(2) + ":" + minutes.pad(2);
 }
 
-function task(update_worked_minutes, initial_state = {}) {
+function create_task(update_day_minutes, initial_state = {}) {
     let task = document.createElement("div");
     task.className = "task";
 
@@ -45,7 +45,7 @@ function task(update_worked_minutes, initial_state = {}) {
     let comment = document.createElement("input");
     comment.className = "comment";
     comment.type = "text";
-    comment.onchange = update_worked_minutes;
+    comment.onchange = state_changed;
     if("comment" in initial_state)
         comment.value = initial_state.comment;
     top_row.appendChild(comment);
@@ -55,7 +55,7 @@ function task(update_worked_minutes, initial_state = {}) {
     close_button.innerText = "⨯";
     close_button.onclick = function () {
         task.parentElement.removeChild(task);
-        update_worked_minutes();
+        state_changed();
     };
     top_row.appendChild(close_button);
 
@@ -66,7 +66,7 @@ function task(update_worked_minutes, initial_state = {}) {
     let start_time = document.createElement("input");
     start_time.className = "start_time";
     start_time.type = "time";
-    start_time.onchange = update_worked_minutes;
+    start_time.onchange = state_changed;
     if("start_time" in initial_state)
         start_time.value = initial_state.start_time;
     bottom_row.appendChild(start_time);
@@ -74,7 +74,7 @@ function task(update_worked_minutes, initial_state = {}) {
     let stop_time = document.createElement("input");
     stop_time.className = "stop_time";
     stop_time.type = "time";
-    stop_time.onchange = update_worked_minutes;
+    stop_time.onchange = state_changed;
     if("stop_time" in initial_state)
         stop_time.value = initial_state.stop_time;
     bottom_row.appendChild(stop_time);
@@ -95,12 +95,65 @@ function task(update_worked_minutes, initial_state = {}) {
         }
     };
 
+    task.get_start_time = () => start_time.value;
     task.get_stop_time = () => stop_time.value;
 
+    function state_changed() {
+        //check if the task does not overlap lunch time. if so we split or crop the task.
+        const start_time_lunch = "12:30";
+        const stop_time_lunch = "13:00";
+        const start_time_lunch_minutes = string_to_minutes(start_time_lunch);
+        const stop_time_lunch_minutes = string_to_minutes(stop_time_lunch);
+        let start_time_minutes = string_to_minutes(start_time.value);
+        let stop_time_minutes = string_to_minutes(stop_time.value);
+
+        if(!(start_time_minutes <= stop_time_minutes)) {
+            //do nothing this is an invalid task. gets handled by a nan minutes value.
+        }
+        else {
+            if(start_time_minutes < start_time_lunch_minutes) {
+                if(stop_time_minutes <= start_time_lunch_minutes) {
+                    //no overlap.
+                }
+                else if(stop_time_minutes <= stop_time_lunch_minutes) {
+                    //task stops during lunch time. crop stop time.
+                    stop_time.value = start_time_lunch;
+                }
+                else {
+                    //task includes lunch time. split the task.
+                    let new_task_state = {
+                        comment: comment.value,
+                        start_time: stop_time_lunch,
+                        stop_time: stop_time.value
+                    }
+                    let new_task = create_task(update_day_minutes, new_task_state);
+                    task.parentNode.insertBefore(new_task, task.nextSibling);
+
+                    stop_time.value = start_time_lunch;
+                }
+            }
+            else if(start_time_minutes < stop_time_lunch_minutes) {
+                if(stop_time_minutes <= stop_time_lunch_minutes) {
+                    //task falls completely in lunch time. remove task.
+                    task.parentElement.removeChild(task);
+                }
+                else {
+                    //task starts during lunch time. crop start time.
+                    start_time.value = stop_time_lunch;
+                }
+            }
+            else {
+                //no overlap.
+            }
+        }
+
+        update_day_minutes();
+    }
+    
     return task;
 }
 
-function day(dayName, update_required_minutes, initial_state = {}) {
+function create_day(dayName, update_required_minutes, initial_state = {}) {
     let day = document.createElement("div");
     day.innerText = dayName;
     day.className = "day";
@@ -131,18 +184,18 @@ function day(dayName, update_required_minutes, initial_state = {}) {
         let initial_state = {};
         if(tasks.lastChild != null)
             initial_state.start_time = tasks.lastChild.get_stop_time();
-        tasks.appendChild(task(update_worked_minutes, initial_state));
-        update_worked_minutes();
+        tasks.appendChild(create_task(update_day_minutes, initial_state));
+        update_day_minutes();
     };
     if("tasks" in initial_state) {
         for(let state of initial_state.tasks) {
-            tasks.appendChild(task(update_worked_minutes, state));
+            tasks.appendChild(create_task(update_day_minutes, state));
         }
-        update_worked_minutes();
+        update_day_minutes();
     }
     day.appendChild(add_task_button);
 
-    function update_worked_minutes() {
+    function update_day_minutes() {
         minutes = 0;
         for (let task of tasks.getElementsByClassName("task")) {
             minutes += task.get_minutes();
@@ -162,7 +215,7 @@ function day(dayName, update_required_minutes, initial_state = {}) {
     return day;
 }
 
-function week(initial_state = {}) {
+function create_week(initial_state = {}) {
     let week = document.createElement("div");
     week.className = "week";
 
@@ -170,12 +223,12 @@ function week(initial_state = {}) {
     
     if("days" in initial_state) {
         for (let index = 0; index < dayNames.length; index++) {
-            week.appendChild(day(dayNames[index], update_required_minutes, initial_state.days[index]));
+            week.appendChild(create_day(dayNames[index], update_required_minutes, initial_state.days[index]));
         }
     }
     else {
         for (let dayName of dayNames) {
-            week.appendChild(day(dayName, update_required_minutes));
+            week.appendChild(create_day(dayName, update_required_minutes));
         }
     }
     update_required_minutes();
@@ -189,6 +242,8 @@ function week(initial_state = {}) {
             day.set_required_minutes(required_minutes);
         }
 
+        //every update we store the actual state in the browser local storage, so nothing gets lost if you accidentaly
+        //close the browser.
         localStorage.setItem("state", JSON.stringify(get_state()));
     }
     
@@ -208,10 +263,11 @@ function week(initial_state = {}) {
 initialize_state();
 
 function initialize_state() {
+    //retrieve the state from when the browser was last closed.
     let initial_state = JSON.parse(localStorage.getItem("state"));
     if(initial_state == null)
         initial_state = {};
-    document.getElementById("task_window").appendChild(week(initial_state));
+    document.getElementById("task_window").appendChild(create_week(initial_state));
 }
 
 function save_state() {
@@ -254,7 +310,7 @@ function load_state_handler(event) {
         let task_window = document.getElementById("task_window");
         if(task_window.hasChildNodes())
             task_window.removeChild(task_window.children[0]);
-        task_window.appendChild(week(state));
+        task_window.appendChild(create_week(state));
     }
 }
 
@@ -262,5 +318,5 @@ function clear_state() {
     let task_window = document.getElementById("task_window");
     if(task_window.hasChildNodes())
         task_window.removeChild(task_window.children[0]);
-    task_window.appendChild(week());
+    task_window.appendChild(create_week());
 }
