@@ -5,7 +5,14 @@
       <link rel="stylesheet" type="text/css" href="styles.css">
   </head>
   <body>
-    <div id="root"></div>
+    <div id="task_window"></div>
+    <div id="menu_window">
+      <button id="save_state" onclick="save_state()">save</button>
+      <button id="load_state" onclick="load_state()">load</button>
+      <button id="clear_state" onclick="clear_state()">clear</button>
+    </div>
+    <a id="anchor">
+    <input id="browser" type="file" onchange="load_state_handler(event)">
     <script src="script.js"></script>
   </body>
 </html>

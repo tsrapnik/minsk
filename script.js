@@ -4,6 +4,15 @@ Number.prototype.pad = function(size) {
     return s;
 }
 
+// stolen from https://stackoverflow.com/questions/6117814/get-week-of-year-in-javascript-like-in-php.
+Date.prototype.getWeekNumber = function(){
+    let d = new Date(Date.UTC(this.getFullYear(), this.getMonth(), this.getDate()));
+    let dayNum = d.getUTCDay() || 7;
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    let yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    return Math.ceil((((d - yearStart) / 86400000) + 1)/7)
+};
+
 //time_string should be of the format "hh:mm".
 function string_to_minutes(time_string) {
     if ((time_string.length != 5) || (time_string[2] != ":"))
@@ -106,7 +115,7 @@ function day(dayName, update_parent, initial_state = {}) {
     day.appendChild(required_minutes);
     day.set_required_minutes = function (minutes) {
         required_minutes.innerText = minutes_to_string(minutes);
-        if(minutes < 0) {
+        if(minutes <= 0) {
             required_minutes.style.color = "rgba(120, 255, 120, 0.4)";
         }
         else {
@@ -122,6 +131,7 @@ function day(dayName, update_parent, initial_state = {}) {
         if(tasks.lastChild != null)
             initial_state.start_time = tasks.lastChild.get_stop_time();
         tasks.appendChild(task(update, initial_state));
+        update();
     };
     if("tasks" in initial_state) {
         for(let state of initial_state.tasks) {
@@ -194,9 +204,52 @@ function week(initial_state = {}) {
     return week;
 }
 
-let initial_state = JSON.parse(localStorage.getItem("state"));
-if(initial_state == null)
-    initial_state = {};
+initialize_state();
 
-let root = document.getElementById("root");
-root.appendChild(week(initial_state));
+function initialize_state() {
+    let initial_state = JSON.parse(localStorage.getItem("state"));
+    if(initial_state == null)
+        initial_state = {};
+    document.getElementById("task_window").appendChild(week(initial_state));
+}
+
+function save_state() {
+    let anchor = document.getElementById("anchor");
+    let the_week = document.getElementById("task_window").children[0];
+    let state = JSON.stringify(the_week.get_state());
+    anchor.href = 'data:text/plain;charset=utf-u,'+encodeURIComponent(state);
+    let today = new Date();
+    anchor.download = "working_hours_"
+                      + today.getUTCFullYear()
+                      + "_week_"
+                      + today.getWeekNumber()
+                      + ".json";
+    anchor.click();
+}
+
+function load_state() {
+    //because of security reasons there seems to be now other way
+    //than to click a hidden browse button and let its handler do
+    //all the work.
+    let browser = document.getElementById("browser");
+    browser.click();
+}
+
+function load_state_handler(event) {
+    let reader = new FileReader();
+    reader.readAsText(event.target.files[0]);
+    reader.onload = function () {
+        let state = JSON.parse(reader.result);
+        let task_window = document.getElementById("task_window");
+        if(task_window.hasChildNodes())
+            task_window.removeChild(task_window.children[0]);
+        task_window.appendChild(week(state));
+    }
+}
+
+function clear_state() {
+    let task_window = document.getElementById("task_window");
+    if(task_window.hasChildNodes())
+        task_window.removeChild(task_window.children[0]);
+    task_window.appendChild(week());
+}

@@ -3,11 +3,11 @@
 }
 
 body {
-    width: 100%;
+    width: 98%;
     height: 100%;
     
     font-family: 'Open Sans', sans-serif;
-    background: #16221d;
+    background: #374e45;
 }
 
 button {
@@ -76,4 +76,32 @@ input:hover {
 .week {
     display: grid;
     grid-template-columns: auto auto auto auto auto auto auto;
+}
+
+#menu_window {
+    display: grid;
+    margin: 20px 4px;
+    grid-template-columns: 30% auto auto auto 30%;
+}
+
+#save_state {
+    margin: 4px;
+    width: 80px;
+    grid-column: 2;
+}
+
+#load_state {
+    margin: 4px;
+    width: 80px;
+    grid-column: 3;
+}
+
+#clear_state {
+    margin: 4px;
+    width: 80px;
+    grid-column: 4;
+}
+
+#anchor, #browser {
+    visibility: hidden;
 }
