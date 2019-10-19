@@ -214,7 +214,13 @@ function initialize_state() {
 }
 
 function save_state() {
-    let anchor = document.getElementById("anchor");
+    let anchor = document.createElement("a");
+
+    //we need to append the anchor to the body, otherwise it doesn't work in firefox.
+    document.getElementsByTagName("body")[0].appendChild(anchor);
+    //give a unique id so we can easily remove it after use.
+    anchor.id = "temporary_anchor";
+
     let the_week = document.getElementById("task_window").children[0];
     let state = JSON.stringify(the_week.get_state());
     anchor.href = 'data:text/plain;charset=utf-u,'+encodeURIComponent(state);
@@ -225,13 +231,17 @@ function save_state() {
                       + today.getWeekNumber()
                       + ".json";
     anchor.click();
+
+    document.getElementsByTagName("body")[0].removeChild(document.getElementById("temporary_anchor"));
 }
 
 function load_state() {
     //because of security reasons there seems to be now other way
     //than to click a hidden browse button and let its handler do
     //all the work.
-    let browser = document.getElementById("browser");
+    let browser = document.createElement("input");
+    browser.type = "file";
+    browser.onchange = load_state_handler;
     browser.click();
 }
 

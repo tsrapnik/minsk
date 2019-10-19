@@ -102,6 +102,6 @@ input:hover {
     grid-column: 4;
 }
 
-#anchor, #browser {
+#anchor {
     visibility: hidden;
 }
